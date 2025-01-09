@@ -39,7 +39,7 @@
   <div class="container">
     <div class="templateContainer">
       <div>Template:</div>
-      <div id="template" contenteditable="true"></div>
+      <textarea id="template"></textarea>
     </div>
     <div class="imageContainer">
       <div>Image:</div>
@@ -56,7 +56,8 @@
       await Dynamsoft.Core.CoreModule.loadWasm(["DDN"]);
       await Dynamsoft.License.LicenseManager.initLicense("DLS2eyJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSJ9",true);
       router = await Dynamsoft.CVR.CaptureVisionRouter.createInstance();
-      
+      const settings = await router.outputSettings("DetectDocumentBoundaries_Default");
+      document.getElementById("template").textContent = JSON.stringify(settings,null,2);
       const imageCropper = document.querySelector("image-cropper");
       const selectionClicked = async (e) => {
         const index = e.detail;
@@ -94,8 +95,9 @@
         updateStatus("Detecting...");
         const imageCropper = document.querySelector("image-cropper");
         const image = imageCropper.img;
-        const template = document.getElementById("template").innerText;
+        const template = JSON.parse(document.getElementById("template").textContent);
         if (template) {
+          console.log(template);
           await router.initSettings(template);
         }
         const result = await router.capture(image, "DetectDocumentBoundaries_Default");
