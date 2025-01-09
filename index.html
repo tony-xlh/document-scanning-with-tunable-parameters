@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.jsdelivr.net/npm/dynamsoft-capture-vision-bundle@2.6.1000/dist/dcv.bundle.js"></script>
   <script type="module">
-    import { defineCustomElements } from 'https://cdn.jsdelivr.net/npm/image-cropper-component/dist/esm/loader.js';
+    import { defineCustomElements } from 'https://cdn.jsdelivr.net/npm/image-cropper-component@2.6.5/dist/esm/loader.js';
     defineCustomElements();
   </script>
   <style>
@@ -56,6 +56,22 @@
       await Dynamsoft.Core.CoreModule.loadWasm(["DDN"]);
       await Dynamsoft.License.LicenseManager.initLicense("DLS2eyJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSJ9",true);
       router = await Dynamsoft.CVR.CaptureVisionRouter.createInstance();
+      
+      const imageCropper = document.querySelector("image-cropper");
+      const selectionClicked = async (e) => {
+        const index = e.detail;
+        let selections = await imageCropper.getAllSelections();
+        let selectedSelection = selections[index];
+        if ("width" in selectedSelection) {
+          imageCropper.rect = selectedSelection;
+        }else{
+          imageCropper.quad = selectedSelection;
+        }
+        selections.splice(index,1);
+        imageCropper.inactiveSelections = selections;
+      }
+
+      imageCropper.addEventListener("selectionClicked",selectionClicked)
       updateStatus("Ready");
     }
 
@@ -69,6 +85,8 @@
         image.onload = async () => {
           const imageCropper = document.querySelector("image-cropper");
           imageCropper.img = image;
+          imageCropper.quad = undefined;
+          imageCropper.inactiveSelections = [];
         };
         image.src = URL.createObjectURL(file);
       });
