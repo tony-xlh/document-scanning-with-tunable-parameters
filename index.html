@@ -9,9 +9,13 @@
     defineCustomElements();
   </script>
   <style>
-    .container {
+    .container, .info-container {
       display: flex;
       gap: 20px;
+    }
+
+    .info-container>div {
+      width: calc(50% - 10px);
     }
 
     .container>div {
@@ -28,6 +32,15 @@
     .imageContainer {
       position: relative;
     }
+
+    .imageThumbnail {
+      height: 100px;
+    }
+
+    .imageThumbnail img {
+      height: 100%;
+      margin-right: 10px;
+    }
   </style>
 </head>
 <body>
@@ -36,19 +49,36 @@
   <input id="fileInput" type="file" style="display: none;"/>
   <button id="detectButton">Start Detection</button>
   <span id="status"></span>
+  <div class="info-container">
+    <div>
+      Template:
+    </div>
+    <div>
+      Image:
+    </div>
+  </div>
   <div class="container">
     <div class="templateContainer">
-      <div>Template:</div>
       <textarea id="template"></textarea>
     </div>
     <div class="imageContainer">
-      <div>Image:</div>
       <image-cropper hidefooter></image-cropper>
     </div>
+  </div>
+  <div class="imageThumbnail">
+
   </div>
   <script>
     let router;
     init();
+    let imagesInDataset = ["book.jpg","holding-with-a-hand.jpg","inner-lines.jpg","inner-table.jpg","low-contrast.jpg"];
+    
+    function appendThumbnail(src){
+      const imageThumbnail = document.querySelector(".imageThumbnail");
+      const img = document.createElement("img");
+      img.src = src;
+      imageThumbnail.appendChild(img);
+    }
 
     async function init(){
       updateStatus("Initilizing...");
@@ -72,7 +102,11 @@
         imageCropper.inactiveSelections = selections;
       }
 
-      imageCropper.addEventListener("selectionClicked",selectionClicked)
+      imageCropper.addEventListener("selectionClicked",selectionClicked);
+      for (let index = 0; index < imagesInDataset.length; index++) {
+        const src = imagesInDataset[index];
+        appendThumbnail("document-scanning-dataset/"+src);
+      }
       updateStatus("Ready");
     }
 
