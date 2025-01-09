@@ -35,6 +35,7 @@
   <button id="selectImageButton">Select an image</button>
   <input id="fileInput" type="file" style="display: none;"/>
   <button id="detectButton">Start Detection</button>
+  <span id="status"></span>
   <div class="container">
     <div class="templateContainer">
       <div>Template:</div>
@@ -50,10 +51,12 @@
     init();
 
     async function init(){
+      updateStatus("Initilizing...");
       registerEvents();
       await Dynamsoft.Core.CoreModule.loadWasm(["DDN"]);
       await Dynamsoft.License.LicenseManager.initLicense("DLS2eyJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSJ9",true);
       router = await Dynamsoft.CVR.CaptureVisionRouter.createInstance();
+      updateStatus("Ready");
     }
 
     function registerEvents(){
@@ -69,6 +72,44 @@
         };
         image.src = URL.createObjectURL(file);
       });
+      document.getElementById("detectButton").addEventListener("click", async () => {
+        updateStatus("Detecting...");
+        const imageCropper = document.querySelector("image-cropper");
+        const image = imageCropper.img;
+        const template = document.getElementById("template").innerText;
+        if (template) {
+          await router.initSettings(template);
+        }
+        const result = await router.capture(image, "DetectDocumentBoundaries_Default");
+        console.log(result);
+        overlayResult(result);
+        updateStatus("");
+      });
+    }
+
+    function overlayResult(result){
+      if (result.detectedQuadResultItems) {
+        const quads = result.detectedQuadResultItems;
+        const imageCropper = document.querySelector("image-cropper");
+        if (quads.length>0) {
+          imageCropper.quad = quads[0].location;
+          if (quads.length>1) {
+            let inactiveSelections = [];
+            for (let index = 1; index < quads.length; index++) {
+              const quad = quads[index];
+              inactiveSelections.push(quad.location);
+            }
+            imageCropper.inactiveSelections = inactiveSelections;
+          }
+        }else{
+          imageCropper.quad = {points:[{x:50,y:50},{x:250,y:50},{x:250,y:250},{x:50,y:250}]};
+        }
+        
+      }
+    }
+
+    function updateStatus(status){
+      document.getElementById("status").innerText = status;
     }
   </script>
 </body>
