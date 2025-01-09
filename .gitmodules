@@ -1,0 +1,3 @@
+[submodule "document-scanning-dataset"]
+	path = document-scanning-dataset
+	url = https://github.com/tony-xlh/document-scanning-dataset
