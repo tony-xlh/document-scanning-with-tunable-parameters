@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Online Document Scanner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.jsdelivr.net/npm/dynamsoft-capture-vision-bundle@2.6.1000/dist/dcv.bundle.js"></script>
+  <script type="module">
+    import { defineCustomElements } from 'https://cdn.jsdelivr.net/npm/image-cropper-component/dist/esm/loader.js';
+    defineCustomElements();
+  </script>
+  <style>
+    .container {
+      display: flex;
+      gap: 20px;
+    }
+
+    .container>div {
+      width: calc(50% - 10px);
+      min-height: 360px;
+    }
+
+    #template {
+      width: 100%;
+      height: 100%;
+      border: 1px solid #000;
+    }
+
+    .imageContainer {
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+  <h1>Detect the Boundary of the Document of a Static Image</h1>
+  <button id="selectImageButton">Select an image</button>
+  <input id="fileInput" type="file" style="display: none;"/>
+  <button id="detectButton">Start Detection</button>
+  <div class="container">
+    <div class="templateContainer">
+      <div>Template:</div>
+      <div id="template" contenteditable="true"></div>
+    </div>
+    <div class="imageContainer">
+      <div>Image:</div>
+      <image-cropper hidefooter></image-cropper>
+    </div>
+  </div>
+  <script>
+    let router;
+    init();
+
+    async function init(){
+      registerEvents();
+      await Dynamsoft.Core.CoreModule.loadWasm(["DDN"]);
+      await Dynamsoft.License.LicenseManager.initLicense("DLS2eyJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSJ9",true);
+      router = await Dynamsoft.CVR.CaptureVisionRouter.createInstance();
+    }
+
+    function registerEvents(){
+      document.getElementById("selectImageButton").addEventListener("click", async () => {
+        document.getElementById("fileInput").click();
+      });
+      document.getElementById("fileInput").addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        const image = document.createElement("img");
+        image.onload = async () => {
+          const imageCropper = document.querySelector("image-cropper");
+          imageCropper.img = image;
+        };
+        image.src = URL.createObjectURL(file);
+      });
+    }
+  </script>
+</body>
+</html>
