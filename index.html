@@ -147,8 +147,12 @@
         appendThumbnail(URL.createObjectURL(file),true);
       });
       document.getElementById("detectButton").addEventListener("click", async () => {
-        updateStatus("Detecting...");
         const imageCropper = document.querySelector("image-cropper");
+        if (!imageCropper.img) {
+          alert("Please select an image");
+          return;
+        }
+        updateStatus("Detecting...");
         const image = imageCropper.img;
         const template = JSON.parse(document.getElementById("template").textContent);
         if (template) {
