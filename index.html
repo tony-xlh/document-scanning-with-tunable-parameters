@@ -40,7 +40,8 @@
     }
 
     .imageThumbnail img {
-      height: calc(100% - 2px);;
+      min-width: 50px;
+      height: calc(100% - 2px);
       margin-right: 10px;
     }
 
@@ -124,7 +125,18 @@
     init();
     let imagesInDataset = ['a4-on-dark-background.jpg', 'a4-on-white-background.jpg', 'book.jpg', 'card-on-dark-background.jpg', 'holding-with-a-hand.jpg', 'inner-lines-dark-ground.jpg', 'inner-lines.jpg', 'inner-table.jpg', 'low-contrast.jpg', 'with-graphics.jpg'];
     
-    function appendThumbnail(src,select){
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(item => {
+        console.log(item.intersectionRatio);
+        if(item.isIntersecting) {
+          console.log("lazy load");
+          item.target.src = item.target.dataset.src;
+          io.unobserve(item.target);
+        }
+      })
+    },{root:document.querySelector(".imageThumbnail"),threshold:0.5})
+
+    function appendThumbnail(src,userSelected){
       const imageThumbnail = document.querySelector(".imageThumbnail");
       const img = document.createElement("img");
       imageThumbnail.appendChild(img);
@@ -132,11 +144,12 @@
         selectImage(img);
       })
       img.onload = function(){
-        if (select) {
+        if (userSelected) {
           selectImage(img);
         }
       }
-      img.src = src;
+      img.src = "";
+      img.dataset.src = src;
     }
 
     function selectImage(img){
@@ -180,7 +193,16 @@
         const src = imagesInDataset[index];
         appendThumbnail("document-scanning-dataset/"+src);
       }
+      observeImages();
       updateStatus("Ready");
+    }
+
+    function observeImages(){
+      const imageThumbnail = document.querySelector(".imageThumbnail");
+      for (let index = 0; index < imageThumbnail.children.length; index++) {
+        const img = imageThumbnail.children[index];
+        io.observe(img);
+      }
     }
 
     function registerEvents(){
