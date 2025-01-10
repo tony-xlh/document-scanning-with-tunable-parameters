@@ -46,6 +46,10 @@
     .imageThumbnail img.selected {
       border: 1px solid orange;
     }
+
+    image-cropper {
+      --active-color: green;
+    }
   </style>
 </head>
 <body>
@@ -67,7 +71,7 @@
       <textarea id="template"></textarea>
     </div>
     <div class="imageContainer">
-      <image-cropper hidefooter></image-cropper>
+      <image-cropper hidefooter style="--active-stroke:5;--inactive-stroke:5;"></image-cropper>
     </div>
   </div>
   <div class="imageThumbnail"></div>
