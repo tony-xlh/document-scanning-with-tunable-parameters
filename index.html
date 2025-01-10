@@ -41,12 +41,12 @@
 
     .imageThumbnail img {
       min-width: 50px;
-      height: calc(100% - 2px);
+      height: 100%;
       margin-right: 10px;
     }
 
     .imageThumbnail img.selected {
-      border: 1px solid orange;
+      outline: 1px solid orange;
     }
 
     image-cropper {
@@ -55,7 +55,7 @@
     }
 
     .cropped canvas{
-      max-height: 360px;
+      max-width: 1024px;
     }
 
     .infoLabel {
@@ -97,7 +97,7 @@
   <div class="container">
     <div class="templateContainer">
       <div class="infoLabel">
-        Template:
+        Template (<a href="https://www.dynamsoft.com/capture-vision/docs/core/parameters/file/index.html" target="_blank">help</a>):
       </div>
       <textarea id="template"></textarea>
     </div>
@@ -123,8 +123,7 @@
     let normalizationTemplate = "";
     let normalizationTemplateName = "NormalizeDocument_Default";
     init();
-    let imagesInDataset = ['a4-on-dark-background.jpg', 'a4-on-white-background.jpg', 'book.jpg', 'card-on-dark-background.jpg', 'holding-with-a-hand.jpg', 'inner-lines-dark-ground.jpg', 'inner-lines.jpg', 'inner-table.jpg', 'low-contrast.jpg', 'with-graphics.jpg'];
-    
+    let imagesInDataset = ['a4-on-dark-background.jpg', 'a4-on-white-background.jpg', 'book.jpg', 'card-on-dark-background.jpg', 'holding-with-a-hand.jpg', 'inner-lines-dark-background.jpg', 'inner-lines.jpg', 'inner-table-on-dark-background.jpg', 'inner-table.jpg', 'low-contrast.jpg', 'with-graphics.jpg'];
     const io = new IntersectionObserver((entries) => {
       entries.forEach(item => {
         console.log(item.intersectionRatio);
@@ -150,7 +149,13 @@
       }
       img.alt = src;
       img.title = src;
-      img.src = "";
+      if (userSelected) {
+        img.src = src;
+        imageThumbnail.scrollTo(imageThumbnail.scrollWidth,0);
+      }else{
+        img.src = "";
+      }
+      
       img.dataset.src = src;
     }
 
