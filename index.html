@@ -50,6 +50,10 @@
     image-cropper {
       --active-color: green;
     }
+
+    .cropped canvas{
+      max-height: 360px;
+    }
   </style>
 </head>
 <body>
@@ -57,6 +61,7 @@
   <button id="selectImageButton">Select an image</button>
   <input id="fileInput" type="file" style="display: none;"/>
   <button id="detectButton">Start Detection</button>
+  <button id="cropButton">Crop</button>
   <span id="status"></span>
   <div class="info-container">
     <div>
@@ -75,8 +80,12 @@
     </div>
   </div>
   <div class="imageThumbnail"></div>
+  <div class="cropped"></div>
   <script>
     let router;
+    let templateName = "DetectDocumentBoundaries_Default";
+    let normalizationTemplate = "";
+    let normalizationTemplateName = "NormalizeDocument_Default";
     init();
     let imagesInDataset = ["book.jpg","holding-with-a-hand.jpg","inner-lines.jpg","inner-table.jpg","low-contrast.jpg"];
     
@@ -114,7 +123,8 @@
       await Dynamsoft.Core.CoreModule.loadWasm(["DDN"]);
       await Dynamsoft.License.LicenseManager.initLicense("DLS2eyJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSJ9",true);
       router = await Dynamsoft.CVR.CaptureVisionRouter.createInstance();
-      const settings = await router.outputSettings("DetectDocumentBoundaries_Default");
+      const settings = await router.outputSettings(templateName);
+      normalizationTemplate = await router.outputSettings(normalizationTemplateName);
       document.getElementById("template").textContent = JSON.stringify(settings,null,2);
       const imageCropper = document.querySelector("image-cropper");
       const selectionClicked = async (e) => {
@@ -146,6 +156,26 @@
         const file = e.target.files[0];
         appendThumbnail(URL.createObjectURL(file),true);
       });
+      document.getElementById("cropButton").addEventListener("click", async () => {
+        const imageCropper = document.querySelector("image-cropper");
+        const quad = await imageCropper.getQuad();
+        if (!quad || !imageCropper.img) {
+          alert("Please select an image and detect first.");
+          return;
+        }
+        await router.initSettings(normalizationTemplate);
+        let settings = await router.getSimplifiedSettings(normalizationTemplateName);
+        settings.roi  = quad;
+        settings.roiMeasuredInPercentage = false;
+        await router.updateSettings(normalizationTemplateName, settings);
+        router.maxCvsSideLength = 99999;
+        let normalizeResult = await router.capture(imageCropper.img,normalizationTemplateName);
+        if (normalizeResult.items[0]) {
+          let container = document.getElementsByClassName("cropped")[0];
+          container.innerHTML = "";
+          container.append(normalizeResult.items[0].toCanvas());
+        }
+      });
       document.getElementById("detectButton").addEventListener("click", async () => {
         const imageCropper = document.querySelector("image-cropper");
         if (!imageCropper.img) {
@@ -159,6 +189,7 @@
           console.log(template);
           await router.initSettings(template);
         }
+        router.maxCvsSideLength = 99999;
         const result = await router.capture(image, "DetectDocumentBoundaries_Default");
         console.log(result);
         overlayResult(result);
