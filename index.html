@@ -159,6 +159,7 @@
       document.getElementById("cropButton").addEventListener("click", async () => {
         const imageCropper = document.querySelector("image-cropper");
         const quad = await imageCropper.getQuad();
+        console.log(quad);
         if (!quad || !imageCropper.img) {
           alert("Please select an image and detect first.");
           return;
@@ -168,7 +169,7 @@
         settings.roi  = quad;
         settings.roiMeasuredInPercentage = false;
         await router.updateSettings(normalizationTemplateName, settings);
-        router.maxCvsSideLength = 99999;
+        router.maxImageSideLength = 99999;
         let normalizeResult = await router.capture(imageCropper.img,normalizationTemplateName);
         if (normalizeResult.items[0]) {
           let container = document.getElementsByClassName("cropped")[0];
@@ -189,7 +190,7 @@
           console.log(template);
           await router.initSettings(template);
         }
-        router.maxCvsSideLength = 99999;
+        router.maxImageSideLength = 99999;
         const result = await router.capture(image, "DetectDocumentBoundaries_Default");
         console.log(result);
         overlayResult(result);
