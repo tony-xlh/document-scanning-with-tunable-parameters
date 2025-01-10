@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Online Document Scanner</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/dynamsoft-capture-vision-bundle@2.6.1000/dist/dcv.bundle.js"></script>
   <script type="module">
     import { defineCustomElements } from 'https://cdn.jsdelivr.net/npm/image-cropper-component@2.6.5/dist/esm/loader.js';
@@ -53,6 +54,25 @@
 
     .cropped canvas{
       max-height: 360px;
+    }
+
+    @media screen and (max-device-width: 600px){
+      body {
+        padding: 10px;
+      }
+      
+      .container, .info-container {
+        flex-wrap: wrap;
+        gap: 0px;
+      }
+
+      .info-container>div {
+        width: 100%;
+      }
+
+      .container>div {
+        width: 100%;
+      }
     }
   </style>
 </head>
