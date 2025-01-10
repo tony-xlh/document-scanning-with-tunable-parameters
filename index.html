@@ -32,12 +32,15 @@
     }
 
     .imageThumbnail {
+      display: flex;
       height: 100px;
+      max-width: 350px;
       padding: 10px;
+      overflow: auto;
     }
 
     .imageThumbnail img {
-      height: 100%;
+      height: calc(100% - 2px);;
       margin-right: 10px;
     }
 
@@ -57,7 +60,7 @@
     .infoLabel {
       height: 20px;
     }
-    
+
     .controls {
       margin-top: 20px;
     }
@@ -119,7 +122,7 @@
     let normalizationTemplate = "";
     let normalizationTemplateName = "NormalizeDocument_Default";
     init();
-    let imagesInDataset = ["book.jpg","holding-with-a-hand.jpg","inner-lines.jpg","inner-table.jpg","low-contrast.jpg"];
+    let imagesInDataset = ['a4-on-dark-background.jpg', 'a4-on-white-background.jpg', 'book.jpg', 'card-on-dark-background.jpg', 'holding-with-a-hand.jpg', 'inner-lines-dark-ground.jpg', 'inner-lines.jpg', 'inner-table.jpg', 'low-contrast.jpg', 'with-graphics.jpg'];
     
     function appendThumbnail(src,select){
       const imageThumbnail = document.querySelector(".imageThumbnail");
