@@ -25,7 +25,7 @@
 
     #template {
       width: 100%;
-      height: 100%;
+      height: calc(100% - 10px);
       border: 1px solid #000;
     }
 
@@ -35,11 +35,16 @@
 
     .imageThumbnail {
       height: 100px;
+      padding: 10px;
     }
 
     .imageThumbnail img {
       height: 100%;
       margin-right: 10px;
+    }
+
+    .imageThumbnail img.selected {
+      border: 1px solid orange;
     }
   </style>
 </head>
@@ -65,9 +70,7 @@
       <image-cropper hidefooter></image-cropper>
     </div>
   </div>
-  <div class="imageThumbnail">
-
-  </div>
+  <div class="imageThumbnail"></div>
   <script>
     let router;
     init();
@@ -78,6 +81,22 @@
       const img = document.createElement("img");
       img.src = src;
       imageThumbnail.appendChild(img);
+      img.addEventListener("click",function(){
+        selectImage(img);
+      })
+    }
+
+    function selectImage(img){
+      const thumbnails = document.querySelectorAll(".imageThumbnail img");
+      for (let index = 0; index < thumbnails.length; index++) {
+        const thumbnail = thumbnails[index];
+        if (thumbnail === img) {
+          thumbnail.classList.add("selected");
+        }else{
+          thumbnail.classList.remove("selected");
+        }
+      }
+      loadImageToCropper(img);
     }
 
     async function init(){
@@ -118,10 +137,7 @@
         const file = e.target.files[0];
         const image = document.createElement("img");
         image.onload = async () => {
-          const imageCropper = document.querySelector("image-cropper");
-          imageCropper.img = image;
-          imageCropper.quad = undefined;
-          imageCropper.inactiveSelections = [];
+          loadImageToCropper(image);
         };
         image.src = URL.createObjectURL(file);
       });
@@ -139,6 +155,13 @@
         overlayResult(result);
         updateStatus("");
       });
+    }
+
+    function loadImageToCropper(img){
+      const imageCropper = document.querySelector("image-cropper");
+      imageCropper.img = img;
+      imageCropper.quad = undefined;
+      imageCropper.inactiveSelections = [];
     }
 
     function overlayResult(result){
