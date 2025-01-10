@@ -198,7 +198,7 @@
       imageCropper.addEventListener("selectionClicked",selectionClicked);
       for (let index = 0; index < imagesInDataset.length; index++) {
         const src = imagesInDataset[index];
-        appendThumbnail("document-scanning-dataset/"+src);
+        appendThumbnail("/document-scanning-dataset/"+src);
       }
       observeImages();
       updateStatus("Ready");
