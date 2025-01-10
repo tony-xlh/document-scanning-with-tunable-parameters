@@ -185,7 +185,7 @@
         }
         updateStatus("Detecting...");
         const image = imageCropper.img;
-        const template = JSON.parse(document.getElementById("template").textContent);
+        const template = JSON.parse(document.getElementById("template").value);
         if (template) {
           console.log(template);
           await router.initSettings(template);
