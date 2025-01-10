@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Online Document Scanner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/dynamsoft-capture-vision-bundle@2.6.1000/dist/dcv.bundle.js"></script>
+  <script type="module">
+    import { defineCustomElements } from 'https://cdn.jsdelivr.net/npm/image-cropper-component@2.6.5/dist/esm/loader.js';
+    defineCustomElements();
+  </script>
+  <style>
+    .container {
+      display: flex;
+      gap: 20px;
+      height: 360px;
+    }
+
+    .container>div {
+      width: calc(50% - 10px);
+      height: 100%;
+    }
+
+    #template {
+      width: 100%;
+      height: calc(100% - 30px);
+      border: 1px solid #000;
+    }
+
+    .imageContainer {
+      position: relative;
+    }
+
+    .imageThumbnail {
+      height: 100px;
+      padding: 10px;
+    }
+
+    .imageThumbnail img {
+      height: 100%;
+      margin-right: 10px;
+    }
+
+    .imageThumbnail img.selected {
+      border: 1px solid orange;
+    }
+
+    image-cropper {
+      --active-color: green;
+      height: calc(100% - 20px);
+    }
+
+    .cropped canvas{
+      max-height: 360px;
+    }
+
+    .infoLabel {
+      height: 20px;
+    }
+    
+    .controls {
+      margin-top: 20px;
+    }
+
+    @media screen and (max-device-width: 600px){
+      body {
+        padding: 10px;
+      }
+
+      .container {
+        flex-wrap: wrap;
+        gap: 0px;
+        height: auto;
+      }
+
+      .container>div {
+        width: 100%;
+        height: auto;
+      }
+
+      #template {
+        height: 200px;
+      }
+
+      image-cropper {
+        height: 360px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Detect the Boundary of the Document of a Static Image</h1>
+  <div class="container">
+    <div class="templateContainer">
+      <div class="infoLabel">
+        Template:
+      </div>
+      <textarea id="template"></textarea>
+    </div>
+    <div class="imageContainer">
+      <div class="infoLabel">
+        Image:
+      </div>
+      <image-cropper hidefooter style="--active-stroke:5;--inactive-stroke:5;"></image-cropper>
+    </div>
+  </div>
+  <div class="controls">
+    <button id="selectImageButton">Select an image</button>
+    <input id="fileInput" type="file" style="display: none;"/>
+    <button id="detectButton">Start Detection</button>
+    <button id="cropButton">Crop</button>
+    <span id="status"></span>
+    <div class="imageThumbnail"></div>
+    <div class="cropped"></div>
+  </div>
+  <script>
+    let router;
+    let templateName = "DetectDocumentBoundaries_Default";
+    let normalizationTemplate = "";
+    let normalizationTemplateName = "NormalizeDocument_Default";
+    init();
+    let imagesInDataset = ["book.jpg","holding-with-a-hand.jpg","inner-lines.jpg","inner-table.jpg","low-contrast.jpg"];
+    
+    function appendThumbnail(src,select){
+      const imageThumbnail = document.querySelector(".imageThumbnail");
+      const img = document.createElement("img");
+      imageThumbnail.appendChild(img);
+      img.addEventListener("click",function(){
+        selectImage(img);
+      })
+      img.onload = function(){
+        if (select) {
+          selectImage(img);
+        }
+      }
+      img.src = src;
+    }
+
+    function selectImage(img){
+      const thumbnails = document.querySelectorAll(".imageThumbnail img");
+      for (let index = 0; index < thumbnails.length; index++) {
+        const thumbnail = thumbnails[index];
+        if (thumbnail === img) {
+          thumbnail.classList.add("selected");
+        }else{
+          thumbnail.classList.remove("selected");
+        }
+      }
+      loadImageToCropper(img);
+    }
+
+    async function init(){
+      updateStatus("Initilizing...");
+      registerEvents();
+      await Dynamsoft.Core.CoreModule.loadWasm(["DDN"]);
+      await Dynamsoft.License.LicenseManager.initLicense("DLS2eyJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSJ9",true);
+      router = await Dynamsoft.CVR.CaptureVisionRouter.createInstance();
+      const settings = await router.outputSettings(templateName);
+      normalizationTemplate = await router.outputSettings(normalizationTemplateName);
+      document.getElementById("template").textContent = JSON.stringify(settings,null,2);
+      const imageCropper = document.querySelector("image-cropper");
+      const selectionClicked = async (e) => {
+        const index = e.detail;
+        let selections = await imageCropper.getAllSelections();
+        let selectedSelection = selections[index];
+        if ("width" in selectedSelection) {
+          imageCropper.rect = selectedSelection;
+        }else{
+          imageCropper.quad = selectedSelection;
+        }
+        selections.splice(index,1);
+        imageCropper.inactiveSelections = selections;
+      }
+
+      imageCropper.addEventListener("selectionClicked",selectionClicked);
+      for (let index = 0; index < imagesInDataset.length; index++) {
+        const src = imagesInDataset[index];
+        appendThumbnail("document-scanning-dataset/"+src);
+      }
+      updateStatus("Ready");
+    }
+
+    function registerEvents(){
+      document.getElementById("selectImageButton").addEventListener("click", async () => {
+        document.getElementById("fileInput").click();
+      });
+      document.getElementById("fileInput").addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        appendThumbnail(URL.createObjectURL(file),true);
+      });
+      document.getElementById("cropButton").addEventListener("click", async () => {
+        const imageCropper = document.querySelector("image-cropper");
+        const quad = await imageCropper.getQuad();
+        console.log(quad);
+        if (!quad || !imageCropper.img) {
+          alert("Please select an image and detect first.");
+          return;
+        }
+        await router.initSettings(normalizationTemplate);
+        let settings = await router.getSimplifiedSettings(normalizationTemplateName);
+        settings.roi  = quad;
+        settings.roiMeasuredInPercentage = false;
+        await router.updateSettings(normalizationTemplateName, settings);
+        router.maxImageSideLength = 99999;
+        let normalizeResult = await router.capture(imageCropper.img,normalizationTemplateName);
+        if (normalizeResult.items[0]) {
+          let container = document.getElementsByClassName("cropped")[0];
+          container.innerHTML = "";
+          container.append(normalizeResult.items[0].toCanvas());
+        }
+      });
+      document.getElementById("detectButton").addEventListener("click", async () => {
+        const imageCropper = document.querySelector("image-cropper");
+        if (!imageCropper.img) {
+          alert("Please select an image");
+          return;
+        }
+        updateStatus("Detecting...");
+        const image = imageCropper.img;
+        const template = JSON.parse(document.getElementById("template").value);
+        if (template) {
+          console.log(template);
+          await router.initSettings(template);
+        }
+        router.maxImageSideLength = 99999;
+        const result = await router.capture(image, "DetectDocumentBoundaries_Default");
+        console.log(result);
+        overlayResult(result);
+        updateStatus("");
+      });
+    }
+
+    function loadImageToCropper(img){
+      const imageCropper = document.querySelector("image-cropper");
+      imageCropper.img = img;
+      imageCropper.quad = undefined;
+      imageCropper.inactiveSelections = [];
+    }
+
+    function overlayResult(result){
+      if (result.detectedQuadResultItems) {
+        const quads = result.detectedQuadResultItems;
+        const imageCropper = document.querySelector("image-cropper");
+        if (quads.length>0) {
+          imageCropper.quad = quads[0].location;
+          if (quads.length>1) {
+            let inactiveSelections = [];
+            for (let index = 1; index < quads.length; index++) {
+              const quad = quads[index];
+              inactiveSelections.push(quad.location);
+            }
+            imageCropper.inactiveSelections = inactiveSelections;
+          }
+        }else{
+          imageCropper.quad = {points:[{x:50,y:50},{x:250,y:50},{x:250,y:250},{x:50,y:250}]};
+        }
+        
+      }
+    }
+
+    function updateStatus(status){
+      document.getElementById("status").innerText = status;
+    }
+  </script>
+</body>
+</html>
