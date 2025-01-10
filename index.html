@@ -10,23 +10,20 @@
     defineCustomElements();
   </script>
   <style>
-    .container, .info-container {
+    .container {
       display: flex;
       gap: 20px;
-    }
-
-    .info-container>div {
-      width: calc(50% - 10px);
+      height: 360px;
     }
 
     .container>div {
       width: calc(50% - 10px);
-      min-height: 360px;
+      height: 100%;
     }
 
     #template {
       width: 100%;
-      height: calc(100% - 10px);
+      height: calc(100% - 30px);
       border: 1px solid #000;
     }
 
@@ -50,57 +47,72 @@
 
     image-cropper {
       --active-color: green;
+      height: calc(100% - 20px);
     }
 
     .cropped canvas{
       max-height: 360px;
     }
 
+    .infoLabel {
+      height: 20px;
+    }
+    
+    .controls {
+      margin-top: 20px;
+    }
+
     @media screen and (max-device-width: 600px){
       body {
         padding: 10px;
       }
-      
-      .container, .info-container {
+
+      .container {
         flex-wrap: wrap;
         gap: 0px;
-      }
-
-      .info-container>div {
-        width: 100%;
+        height: auto;
       }
 
       .container>div {
         width: 100%;
+        height: auto;
+      }
+
+      #template {
+        height: 200px;
+      }
+
+      image-cropper {
+        height: 360px;
       }
     }
   </style>
 </head>
 <body>
   <h1>Detect the Boundary of the Document of a Static Image</h1>
-  <button id="selectImageButton">Select an image</button>
-  <input id="fileInput" type="file" style="display: none;"/>
-  <button id="detectButton">Start Detection</button>
-  <button id="cropButton">Crop</button>
-  <span id="status"></span>
-  <div class="info-container">
-    <div>
-      Template:
-    </div>
-    <div>
-      Image:
-    </div>
-  </div>
   <div class="container">
     <div class="templateContainer">
+      <div class="infoLabel">
+        Template:
+      </div>
       <textarea id="template"></textarea>
     </div>
     <div class="imageContainer">
+      <div class="infoLabel">
+        Image:
+      </div>
       <image-cropper hidefooter style="--active-stroke:5;--inactive-stroke:5;"></image-cropper>
     </div>
   </div>
-  <div class="imageThumbnail"></div>
-  <div class="cropped"></div>
+  <div class="controls">
+    <button id="selectImageButton">Select an image</button>
+    <input id="fileInput" type="file" style="display: none;"/>
+    <button id="detectButton">Start Detection</button>
+    <button id="cropButton">Crop</button>
+    <span id="status"></span>
+    <div class="imageThumbnail"></div>
+    <div class="cropped"></div>
+  </div>
   <script>
     let router;
     let templateName = "DetectDocumentBoundaries_Default";
