@@ -76,14 +76,19 @@
     init();
     let imagesInDataset = ["book.jpg","holding-with-a-hand.jpg","inner-lines.jpg","inner-table.jpg","low-contrast.jpg"];
     
-    function appendThumbnail(src){
+    function appendThumbnail(src,select){
       const imageThumbnail = document.querySelector(".imageThumbnail");
       const img = document.createElement("img");
-      img.src = src;
       imageThumbnail.appendChild(img);
       img.addEventListener("click",function(){
         selectImage(img);
       })
+      img.onload = function(){
+        if (select) {
+          selectImage(img);
+        }
+      }
+      img.src = src;
     }
 
     function selectImage(img){
@@ -135,11 +140,7 @@
       });
       document.getElementById("fileInput").addEventListener("change", async (e) => {
         const file = e.target.files[0];
-        const image = document.createElement("img");
-        image.onload = async () => {
-          loadImageToCropper(image);
-        };
-        image.src = URL.createObjectURL(file);
+        appendThumbnail(URL.createObjectURL(file),true);
       });
       document.getElementById("detectButton").addEventListener("click", async () => {
         updateStatus("Detecting...");
