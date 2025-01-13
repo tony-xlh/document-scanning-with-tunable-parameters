@@ -54,7 +54,7 @@
       height: calc(100% - 20px);
     }
 
-    .cropped canvas{
+    .cropped canvas, .mask canvas{
       max-width: 1024px;
     }
 
@@ -115,7 +115,14 @@
     <button id="cropButton">Crop</button>
     <span id="status"></span>
     <div class="imageThumbnail"></div>
-    <div class="cropped"></div>
+    <div>
+      Cropped:
+      <div class="cropped"></div>
+    </div>
+    <div>
+      Mask:
+      <div class="mask"></div>
+    </div>
   </div>
   <script>
     let router;
@@ -243,6 +250,7 @@
           let container = document.getElementsByClassName("cropped")[0];
           container.innerHTML = "";
           container.append(normalizeResult.items[0].toCanvas());
+          generateMask(imageCropper.img, quad);
         }
       });
       document.getElementById("detectButton").addEventListener("click", async () => {
@@ -296,6 +304,32 @@
 
     function updateStatus(status){
       document.getElementById("status").innerText = status;
+    }
+
+    function generateMask(img,quad){
+      let container = document.getElementsByClassName("mask")[0];
+      container.innerHTML = "";
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "rgba(0,0,0,1)";
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle = "rgba(255,255,255,1)";
+      ctx.beginPath();
+      for (let index = 0; index < quad.points.length; index++) {
+        const point = quad.points[index];
+        const x = point.x;
+        const y = point.y;
+        if (index === 0) {
+          ctx.moveTo(x,y);
+        }else{
+          ctx.lineTo(x,y);
+        }
+      }
+      ctx.closePath();
+      ctx.fill();
+      container.append(canvas);
     }
   </script>
 </body>
