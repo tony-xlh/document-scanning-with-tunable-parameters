@@ -116,6 +116,12 @@
     <span id="status"></span>
     <div class="imageThumbnail"></div>
     <div>
+      <label>
+        Use compressed photos:
+        <input id="useCompressed" type="checkbox" checked/>
+      </label>
+    </div>
+    <div>
       Cropped:
       <div class="cropped"></div>
     </div>
@@ -209,11 +215,7 @@
       }
 
       imageCropper.addEventListener("selectionClicked",selectionClicked);
-      for (let index = 0; index < imagesInDataset.length; index++) {
-        const src = imagesInDataset[index];
-        appendThumbnail("/document-scanning-dataset/"+src);
-      }
-      observeImages();
+      loadImages();
       updateStatus("Ready");
     }
 
@@ -225,7 +227,30 @@
       }
     }
 
+    function loadImages(){
+      const imageThumbnail = document.querySelector(".imageThumbnail");
+      imageThumbnail.innerHTML = "";
+      let useCompressed = document.getElementById("useCompressed").checked;
+      for (let index = 0; index < imagesInDataset.length; index++) {
+        const src = imagesInDataset[index];
+        if (useCompressed) {
+          appendThumbnail("/document-scanning-dataset/webp/"+getFilenameWithoutExtension(src)+".webp");
+        }else{
+          appendThumbnail("/document-scanning-dataset/"+src);
+        }
+      }
+      observeImages();
+    }
+
+    function getFilenameWithoutExtension(filename){
+      let index = filename.lastIndexOf(".");
+      return filename.substring(0,index);
+    }
+
     function registerEvents(){
+      document.getElementById("useCompressed").addEventListener("change", async (e) => {
+        loadImages();
+      });
       document.getElementById("selectImageButton").addEventListener("click", async () => {
         document.getElementById("fileInput").click();
       });
