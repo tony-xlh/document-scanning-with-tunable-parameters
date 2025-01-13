@@ -121,6 +121,8 @@
     </div>
     <div>
       Mask:
+      <button id="regenerateButton">Regenerate using X-AnyLabeling's JSON</button>
+      <input id="JSONInput" type="file" style="display: none;"/>
       <div class="mask"></div>
     </div>
   </div>
@@ -231,6 +233,13 @@
         const file = e.target.files[0];
         appendThumbnail(URL.createObjectURL(file),true);
       });
+      document.getElementById("regenerateButton").addEventListener("click", async () => {
+        document.getElementById("JSONInput").click();
+      });
+      document.getElementById("JSONInput").addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        parseJSONAndRegenerateMask(file);
+      });
       document.getElementById("cropButton").addEventListener("click", async () => {
         const imageCropper = document.querySelector("image-cropper");
         const quad = await imageCropper.getQuad();
@@ -307,6 +316,7 @@
     }
 
     function generateMask(img,quad){
+      console.log(quad);
       let container = document.getElementsByClassName("mask")[0];
       container.innerHTML = "";
       const canvas = document.createElement("canvas");
@@ -319,8 +329,15 @@
       ctx.beginPath();
       for (let index = 0; index < quad.points.length; index++) {
         const point = quad.points[index];
-        const x = point.x;
-        const y = point.y;
+        let x;
+        let y;
+        if ("x" in point) {
+          x = point.x;
+          y = point.y;
+        }else{
+          x = point[0];
+          y = point[1];
+        }
         if (index === 0) {
           ctx.moveTo(x,y);
         }else{
@@ -330,6 +347,17 @@
       ctx.closePath();
       ctx.fill();
       container.append(canvas);
+    }
+
+    function parseJSONAndRegenerateMask(file){
+      const reader = new FileReader();
+      reader.onload = async function(e){
+        const project = JSON.parse(e.target.result);
+        const imageCropper = document.querySelector("image-cropper");
+        const quad = project.shapes[0];
+        generateMask(imageCropper.img, quad);
+      }
+      reader.readAsText(file);
     }
   </script>
 </body>
