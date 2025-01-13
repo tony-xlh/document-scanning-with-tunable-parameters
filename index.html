@@ -175,12 +175,16 @@
     async function init(){
       updateStatus("Initilizing...");
       registerEvents();
-      await Dynamsoft.Core.CoreModule.loadWasm(["DDN"]);
-      await Dynamsoft.License.LicenseManager.initLicense("DLS2eyJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSJ9",true);
-      router = await Dynamsoft.CVR.CaptureVisionRouter.createInstance();
-      const settings = await router.outputSettings(templateName);
-      normalizationTemplate = await router.outputSettings(normalizationTemplateName);
-      document.getElementById("template").textContent = JSON.stringify(settings,null,2);
+      try {
+        await Dynamsoft.Core.CoreModule.loadWasm(["DDN"]);
+        await Dynamsoft.License.LicenseManager.initLicense("DLS2eyJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSJ9",true);
+        router = await Dynamsoft.CVR.CaptureVisionRouter.createInstance();
+        const settings = await router.outputSettings(templateName);
+        normalizationTemplate = await router.outputSettings(normalizationTemplateName);
+        document.getElementById("template").textContent = JSON.stringify(settings,null,2);
+      } catch (error) {
+        console.error(error);
+      }
       const imageCropper = document.querySelector("image-cropper");
       const selectionClicked = async (e) => {
         const index = e.detail;
